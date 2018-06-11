@@ -36,7 +36,7 @@ function check_exam()
 			return ;
 		}
 		let registered = exam_event.search('<span class="event-registered">registered</span>');
-		if (registered != null)
+		if (registered === -1)
 		{
 			console.log("You are already registered to Exam!");
 			process.exit();
