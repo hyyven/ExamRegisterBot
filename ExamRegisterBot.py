@@ -3,7 +3,6 @@ import re
 from time import sleep
 from bs4 import BeautifulSoup as bs
 from sys import exit
-from urllib.parse import urlencode
 
 timer = 5
 #Insert your cookie!
@@ -15,12 +14,11 @@ def RegisterToExam():
 	This is a function which allow user to subscribe to exam.
 	"""
 
-
-	cookie_dict = {elem.split('=')[0]: elem.split('=')[1] for elem in cookie.split(' ')}
+	cookie_dict = {'_intra_42_session_production': cookie}
 	try:
 		req = requests.get("https://profile.intra.42.fr", cookies=cookie_dict)
-	except:
-		print("[-] Check your connection!")
+	except Exception as e:
+		print(f"[-] Check your connection! {e}")
 		return
 	soup = bs(req.content.decode('utf-8'), 'html.parser')
 	exams = [str(x) for x in soup.find_all('div') if x.get('data-event-kind') == 'exam']
