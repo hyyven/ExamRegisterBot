@@ -4,10 +4,15 @@ from time import sleep
 from bs4 import BeautifulSoup as bs
 from sys import exit
 
-timer = 5
+timer = 60
 #Insert your cookie!
 cookie = ""
 
+def skip_specific_exam(exams):
+	for exam in exams:
+		if 'class="date-day">15' and 'class="date-month">September' in exam:
+			exams.remove(exam)
+			# print("Skipping September 15 exam")
 
 def RegisterToExam():
 	"""
@@ -29,15 +34,19 @@ def RegisterToExam():
 	csrf_token = soup.find(attrs={'name':'csrf-token'})
 	csrf_token = csrf_token['content']
 
+	skip_specific_exam(exams)
+
 	if not exams:
-		print("No EXAM!")
+		print("[*] No EXAM!")
 		return
 	for exam in exams:
+		# print(f"[*] Checking exam: {exam}")
+		# continue
 		if '<span class>="event full"' in exam:
 			continue
 		else:
 			if '<span class="event-registered">registered</span>' in exam:
-				print("You are already registered to Exam!")
+				print("[+] You are already registered to Exam!")
 				exit()
 			event_id = re.search('/exams/[0-9]*', exam)
 			if event_id:
@@ -49,14 +58,16 @@ def RegisterToExam():
 					print("[-] Error:", str(e))
 					exit(-1)
 				print("[+] Exams user was successfully created.")
-				exit()	
+				exit()
 			else:
 				print("[*] Contact the author of this program or modify and send a pull request")
-
-	print("Every exams are full! Try this program later!")
-	exit()
+	print("Every exams are full")
 
 if __name__ == "__main__":
-	while True:
-		RegisterToExam()
-		sleep(timer)
+	try:
+		while True:
+			RegisterToExam()
+			sleep(timer)
+	except KeyboardInterrupt:
+		print("[-] Exiting...")
+		exit(0)
