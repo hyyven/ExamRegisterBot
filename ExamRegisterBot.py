@@ -15,15 +15,12 @@ def skip_specific_exam(exams):
 			# print("Skipping September 15 exam")
 
 def RegisterToExam():
-	"""
-	This is a function which allow user to subscribe to exam.
-	"""
-
 	cookie_dict = {'_intra_42_session_production': cookie}
 	try:
 		req = requests.get("https://profile.intra.42.fr", cookies=cookie_dict)
+		req.raise_for_status()
 	except Exception as e:
-		print(f"[-] Check your connection! {e}")
+		print(f"[-] check your connection {e}")
 		return
 	soup = bs(req.content.decode('utf-8'), 'html.parser')
 	exams = [str(x) for x in soup.find_all('div') if x.get('data-event-kind') == 'exam']
@@ -32,22 +29,25 @@ def RegisterToExam():
 	#maybe just a regex to get the csrf-token is better....
 
 	csrf_token = soup.find(attrs={'name':'csrf-token'})
+	if not csrf_token:
+		print("[-] cookie is probably invalid")
+		exit(1)
 	csrf_token = csrf_token['content']
 
-	skip_specific_exam(exams)
+	# skip_specific_exam(exams)
 
 	if not exams:
-		print("[*] No EXAM!")
+		# print("[*] no exam")
 		return
 	for exam in exams:
-		# print(f"[*] Checking exam: {exam}")
+		# print(f"[*] checking exam: {exam}")
 		# continue
 		if '<span class>="event full"' in exam:
 			continue
 		else:
 			if '<span class="event-registered">registered</span>' in exam:
-				print("[+] You are already registered to Exam!")
-				exit()
+				print("[+] already registered to an exam")
+				exit(0)
 			event_id = re.search('/exams/[0-9]*', exam)
 			if event_id:
 				post_url = "https://profile.intra.42.fr" + event_id[0] + "/exams_users"
@@ -55,13 +55,13 @@ def RegisterToExam():
 				try:
 					req_exam = requests.post(post_url, data=post_data, cookies=cookie_dict)
 				except Exception as e:
-					print("[-] Error:", str(e))
-					exit(-1)
-				print("[+] Exams user was successfully created.")
-				exit()
+					print("[-] error:", str(e))
+					exit(1)
+				print("[+] successfully registered to an exam")
+				exit(0)
 			else:
-				print("[*] Contact the author of this program or modify and send a pull request")
-	print("Every exams are full")
+				print("[*] contact the author of this program or modify and send a pull request")
+	print("every exams are full")
 
 if __name__ == "__main__":
 	try:
@@ -69,5 +69,5 @@ if __name__ == "__main__":
 			RegisterToExam()
 			sleep(timer)
 	except KeyboardInterrupt:
-		print("[-] Exiting...")
+		print("[-] exiting...")
 		exit(0)
