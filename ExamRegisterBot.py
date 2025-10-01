@@ -6,16 +6,17 @@ from sys import exit
 
 timer = 60
 #Insert your cookie!
-cookie = ""
+COOKIE = ""
+WEBHOOK_URL = ""
 
 def skip_specific_exam(exams):
 	for exam in exams:
-		if 'class="date-day">15' and 'class="date-month">September' in exam:
+		if 'class="date-day">19' and 'class="date-month">September' in exam:
 			exams.remove(exam)
-			# print("Skipping September 15 exam")
+			# print("Skipping September 19 exam")
 
 def RegisterToExam():
-	cookie_dict = {'_intra_42_session_production': cookie}
+	cookie_dict = {'_intra_42_session_production': COOKIE}
 	try:
 		req = requests.get("https://profile.intra.42.fr", cookies=cookie_dict)
 		req.raise_for_status()
@@ -31,7 +32,9 @@ def RegisterToExam():
 	csrf_token = soup.find(attrs={'name':'csrf-token'})
 	if not csrf_token:
 		print("[-] cookie is probably invalid")
-		exit(1)
+		send_notif("[-] cookie is probably invalid")
+		return
+		# exit(1)
 	csrf_token = csrf_token['content']
 
 	# skip_specific_exam(exams)
@@ -58,10 +61,20 @@ def RegisterToExam():
 					print("[-] error:", str(e))
 					exit(1)
 				print("[+] successfully registered to an exam")
+				send_notif("[+] successfully registered to an exam")
 				exit(0)
 			else:
 				print("[*] contact the author of this program or modify and send a pull request")
 	print("every exams are full")
+
+def send_notif(message: str):
+    if not WEBHOOK_URL:
+        return
+    try:
+        response = requests.post(WEBHOOK_URL, json={"content": f"@everyone {message}"})
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur lors de l'envoi de la notification : {e}")
 
 if __name__ == "__main__":
 	try:
